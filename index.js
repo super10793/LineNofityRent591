@@ -1,3 +1,4 @@
+require('dotenv').config();
 const fetchToken = require('./api/fetchToken');
 const fetchHouseList = require('./api/fetchHouseList');
 const fetchHouseDetail = require('./api/fetchHouseDetail');
@@ -9,22 +10,25 @@ function delay(ms) {
 }
 
 async function start() {
-	console.log('You will see this message every second');
-	// const { token, cookie, phpSid } = await fetchToken();
-	// const houseData = await fetchHouseList(token, cookie);
-	// const houseList = houseData.data.data;
+	const { token, cookie, phpSid } = await fetchToken();
+	const houseData = await fetchHouseList(token, cookie);
+	const houseList = houseData.data.data;
 	
-	// for (const house of houseList) {
-	// 	const houseDetail = await fetchHouseDetail(house.post_id, token, cookie, phpSid);
-	// 	console.log(`價格：${houseDetail.data.price}, 收藏：${houseDetail.data.favData.count}`);
-	// 	await delay(100);
-	// }
+	let listMessage = "";
+	for (const house of houseList) {
+		const houseDetail = await fetchHouseDetail(house.post_id, token, cookie, phpSid);
+		const url = `https://rent.591.com.tw/home/${house.post_id}`
+		const watched = houseDetail.data.browse.pc + houseDetail.data.browse.mobile;
+    listMessage = listMessage + `價格：${houseDetail.data.price}\n收藏：${houseDetail.data.favData.count}、觀看次數：${watched}\n${url}\n\n`
+		await delay(300);
+	}
 
-	// const aaa = await postLineNofity("Yoo man");
-	// console.log(aaa)
+	const message = `地點：台北\n類型：獨立套房\n價格區間：5000-10000\n前30筆資料如下\n\n${listMessage}`
+
+	const aaa = await postLineNofity(message);
 }
 
-const job = new CronJob('* * * * * *', function() {
+const job = new CronJob('0 10 * * *', function() {
 	start();
 }, null, true, 'Asia/Taipei');
 job.start();
