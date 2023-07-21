@@ -16,7 +16,6 @@ async function getRequest(options) {
 }
 
 async function postRequest(options) {
-  console.log(options)
   const response = await fetch(options.url, {
     "method": 'POST',
     "headers": options.headers,
