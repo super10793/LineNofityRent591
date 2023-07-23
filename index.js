@@ -1,5 +1,5 @@
 require('dotenv').config();
-const fetchToken = require('./api/fetchToken');
+// const fetchToken = require('./api/fetchToken');
 // const fetchHouseList = require('./api/fetchHouseList');
 // const fetchHouseDetail = require('./api/fetchHouseDetail');
 // const postLineNotify = require('./api/postLineNotify');
