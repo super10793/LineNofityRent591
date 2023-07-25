@@ -35,14 +35,17 @@ async function start() {
 }
 
 // 早上10點抓資料
-const morningJob = new CronJob('0 10 * * *', function() {
+const morningJob = new CronJob('0 10 * * *', () => {
+	console.log("morningJob start");
 	start();
 }, null, true, 'Asia/Taipei');
 
 // 晚上10點抓資料
-const eveningJob = new CronJob('0 22 * * *', function() {
+const eveningJob = new CronJob('0 22 * * *', () => {
+	console.log("eveningJob start");
 	start();
 }, null, true, 'Asia/Taipei');
 
+console.log("set jobs");
 morningJob.start();
 eveningJob.start();
