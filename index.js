@@ -41,7 +41,7 @@ const morningJob = new CronJob('0 10 * * *', () => {
 }, null, true, 'Asia/Taipei');
 
 // 晚上10點抓資料
-const eveningJob = new CronJob('0 22 * * *', () => {
+const eveningJob = new CronJob('50 22 * * *', () => {
 	console.log("eveningJob start");
 	start();
 }, null, true, 'Asia/Taipei');
