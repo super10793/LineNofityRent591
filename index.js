@@ -4,6 +4,9 @@ const fetchHouseList = require('./api/fetchHouseList');
 const fetchHouseDetail = require('./api/fetchHouseDetail');
 const postLineNotify = require('./api/postLineNotify');
 const CronJob = require('cron').CronJob;
+const express = require('express');
+const app = express();
+const port = 10000; // 這裡指定你想要使用的連接埠號碼
 
 function delay(ms) {
   return new Promise((resolve) => setTimeout(resolve, ms));
@@ -34,18 +37,22 @@ async function start() {
 	console.log(`lineNotify=${lineNotify}`);
 }
 
-// 早上10點抓資料
-const morningJob = new CronJob('0 10 * * *', () => {
-	console.log("morningJob start");
-	start();
-}, null, true, 'Asia/Taipei');
+app.listen(port, () => {
+  	console.log(`應用程式正在運行於 http://0.0.0.0:${port}`);
+  	
+  	// 早上10點抓資料
+	const morningJob = new CronJob('0 10 * * *', () => {
+		console.log("morningJob start");
+		start();
+	}, null, true, 'Asia/Taipei');
 
-// 晚上10點抓資料
-const eveningJob = new CronJob('0 22 * * *', () => {
-	console.log("eveningJob start");
-	start();
-}, null, true, 'Asia/Taipei');
+	// 晚上10點抓資料
+	const eveningJob = new CronJob('0 22 * * *', () => {
+		console.log("eveningJob start");
+		start();
+	}, null, true, 'Asia/Taipei');
 
-console.log("set jobs");
-morningJob.start();
-eveningJob.start();
+	console.log("set jobs");
+	morningJob.start();
+	eveningJob.start();
+});
