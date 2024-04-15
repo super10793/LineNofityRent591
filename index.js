@@ -3,17 +3,36 @@ const fetchToken = require('./api/fetchToken');
 const fetchHouseList = require('./api/fetchHouseList');
 const fetchHouseDetail = require('./api/fetchHouseDetail');
 const postLineNotify = require('./api/postLineNotify');
-const CronJob = require('cron').CronJob;
 const express = require('express');
+const line = require('@line/bot-sdk');
+const botConfig = {
+	channelId: process.env.LINE_CHANNEL_ID,
+	channelSecret: process.env.LINE_CHANNEL_SECRET,
+	channelAccessToken: process.env.LINE_CHANNEL_ACCESS_TOKEN
+};
+const client = new line.Client(botConfig);
 const app = express();
-const port = 10000; // 這裡指定你想要使用的連接埠號碼
-
+const TRIGGER_KEY_WORD = 'go';
 
 function delay(ms) {
   return new Promise((resolve) => setTimeout(resolve, ms));
 }
 
-async function start() {
+app.post('/callback', line.middleware(botConfig), (req, res) => {
+  Promise
+    .all(req.body.events.map(handleEvent))
+    .then((result) => res.json(result))
+    .catch((err) => {
+      console.error(err);
+      res.status(500).end();
+    });
+});
+
+async function handleEvent(event) {
+  if (event.type != 'message' || event.message.type != 'text' || event.message.text != TRIGGER_KEY_WORD) {
+    return Promise.resolve(null);
+  }
+
 	const { token, cookie, phpSid } = await fetchToken();
 	console.log(`fetchToken()成功，token=${token}, cookie=${cookie}, phpSid=${phpSid}`);
 
@@ -32,31 +51,14 @@ async function start() {
 		await delay(300);
 	}
 
-	const message = `\n地點：台北\n類型：獨立套房\n價格區間：5000-10000\n前30筆資料如下\n\n${listMessage}`
-
-	const lineNotify = await postLineNotify(message);
-	console.log(`lineNotify=${lineNotify}`);
+	const message = `\n地點：台北\n類型：獨立套房\n價格區間：5000-10000\n前30筆資料如下\n\n${listMessage}`;  
+  return client.replyMessage(event.replyToken, { 
+  	type: 'text', 
+  	text: message
+  });
 }
 
+const port = process.env.PORT || 3000;
 app.listen(port, () => {
-  	console.log(`應用程式正在運行於 http://0.0.0.0:${port}`);
-  	
-  	// 早上10點抓資料
-	const morningJob = new CronJob('0 10 * * *', () => {
-		console.log("morningJob start");
-		start();
-	}, null, true, 'Asia/Taipei');
-
-	// 晚上10點抓資料
-	const eveningJob = new CronJob('00 22 * * *', () => {
-		console.log("eveningJob start");
-		start();
-	}, null, true, 'Asia/Taipei');
-
-	console.log("set jobs");
-	morningJob.start();
-	eveningJob.start();
+  console.log(`listening on ${port}`);
 });
-
-
-
