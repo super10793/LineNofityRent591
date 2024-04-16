@@ -18,28 +18,7 @@ function delay(ms) {
   return new Promise((resolve) => setTimeout(resolve, ms));
 }
 
-app.post('/callback', line.middleware(botConfig), (req, res) => {
-  Promise
-    .all(req.body.events.map(handleEvent))
-    .then((result) => res.json(result))
-    .catch((err) => {
-      console.error(err);
-      res.status(500).end();
-    });
-});
-
-async function handleEvent(event) {
-	if (event.type != 'message' || event.message.type != 'text') {
-		return Promise.resolve(null);
-	}
-
-	if (event.message.text != TRIGGER_KEY_WORD) {
-		return client.replyMessage(event.replyToken, { 
-			type: 'text', 
-			text: `Hi, 你說了：${event.message.text}`
-		});
-	}
-
+async function generateMessageByFetchHouse() {
 	const { token, cookie, phpSid } = await fetchToken();
 	console.log(`fetchToken()成功，token=${token}, cookie=${cookie}, phpSid=${phpSid}`);
 
@@ -58,12 +37,38 @@ async function handleEvent(event) {
 		await delay(300);
 	}
 
-	const message = `\n地點：台北\n類型：獨立套房\n價格區間：5000-10000\n前30筆資料如下\n\n${listMessage}`;  
+	const message = `地點：台北\n類型：獨立套房\n價格區間：5000-10000\n前30筆資料如下\n\n${listMessage}`;
+	return message;
+}
+
+async function handleEvent(event) {
+	if (event.type != 'message' || event.message.type != 'text') {
+		return Promise.resolve(null);
+	}
+
+	if (event.message.text != TRIGGER_KEY_WORD) {
+		return client.replyMessage(event.replyToken, { 
+			type: 'text', 
+			text: `Hi, 你說了：${event.message.text}`
+		});
+	}
+
+	const message = await generateMessageByFetchHouse();
 	return client.replyMessage(event.replyToken, { 
 		type: 'text', 
 		text: message
 	});
 }
+
+app.post('/callback', line.middleware(botConfig), (req, res) => {
+	Promise
+		.all(req.body.events.map(handleEvent))
+		.then((result) => res.json(result))
+		.catch((err) => {
+			console.error(err);
+			res.status(500).end();
+		});
+});
 
 const port = process.env.PORT || 3000;
 app.listen(port, () => {
