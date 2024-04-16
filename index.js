@@ -29,9 +29,16 @@ app.post('/callback', line.middleware(botConfig), (req, res) => {
 });
 
 async function handleEvent(event) {
-  if (event.type != 'message' || event.message.type != 'text' || event.message.text != TRIGGER_KEY_WORD) {
-    return Promise.resolve(null);
-  }
+	if (event.type != 'message' || event.message.type != 'text') {
+		return Promise.resolve(null);
+	}
+
+	if (event.message.text != TRIGGER_KEY_WORD) {
+		return client.replyMessage(event.replyToken, { 
+			type: 'text', 
+			text: `Hi, 你說了：${event.message.text}`
+		});
+	}
 
 	const { token, cookie, phpSid } = await fetchToken();
 	console.log(`fetchToken()成功，token=${token}, cookie=${cookie}, phpSid=${phpSid}`);
@@ -47,18 +54,18 @@ async function handleEvent(event) {
 		
 		const url = `https://rent.591.com.tw/home/${house.post_id}`
 		const watched = houseDetail.data.browse.pc + houseDetail.data.browse.mobile;
-    	listMessage = listMessage + `價格：${houseDetail.data.price}\n收藏：${houseDetail.data.favData.count}、觀看次數：${watched}\n${url}\n\n`
+		listMessage = listMessage + `價格：${houseDetail.data.price}\n收藏：${houseDetail.data.favData.count}、觀看次數：${watched}\n${url}\n\n`
 		await delay(300);
 	}
 
 	const message = `\n地點：台北\n類型：獨立套房\n價格區間：5000-10000\n前30筆資料如下\n\n${listMessage}`;  
-  return client.replyMessage(event.replyToken, { 
-  	type: 'text', 
-  	text: message
-  });
+	return client.replyMessage(event.replyToken, { 
+		type: 'text', 
+		text: message
+	});
 }
 
 const port = process.env.PORT || 3000;
 app.listen(port, () => {
-  console.log(`listening on ${port}`);
+	console.log(`listening on ${port}`);
 });
